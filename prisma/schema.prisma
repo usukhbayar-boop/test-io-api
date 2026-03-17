@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  user
+}
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  first_name    String   @db.VarChar(100)
+  last_name     String   @db.VarChar(100)
+  phone         String   @unique @db.VarChar(20)
+  email         String   @unique @db.VarChar(255)
+  username      String?  @unique @db.VarChar(50)
+  password_hash String
+  role          Role     @default(user)
+  created_at    DateTime @default(now())
+
+  exams Exam[]
+
+  @@map("users")
+}
+
+model Course {
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String   @db.VarChar(255)
+  image_url  String?
+  created_at DateTime @default(now())
+
+  questions Question[]
+  exams     Exam[]
+
+  @@map("courses")
+}
+
+model Question {
+  id           String   @id @default(uuid()) @db.Uuid
+  course_id    String   @db.Uuid
+  text_content String?  @db.Text
+  image_url    String?
+  audio_url    String?
+  video_url    String?
+  created_at   DateTime @default(now())
+
+  course       Course       @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  answers      Answer[]
+  exam_answers ExamAnswer[]
+
+  @@map("questions")
+}
+
+model Answer {
+  id         String   @id @default(uuid()) @db.Uuid
+  question_id String  @db.Uuid
+  text       String   @db.Text
+  is_correct Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  question     Question     @relation(fields: [question_id], references: [id], onDelete: Cascade)
+  exam_answers ExamAnswer[]
+
+  @@map("answers")
+}
+
+model Exam {
+  id               String    @id @default(uuid()) @db.Uuid
+  user_id          String    @db.Uuid
+  course_id        String    @db.Uuid
+  started_at       DateTime?
+  finished_at      DateTime?
+  duration_seconds Int?
+  score            Int?
+  correct_count    Int?
+  wrong_count      Int?
+
+  user         User         @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  course       Course       @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  exam_answers ExamAnswer[]
+
+  @@map("exams")
+}
+
+model ExamAnswer {
+  id                 String  @id @default(uuid()) @db.Uuid
+  exam_id            String  @db.Uuid
+  question_id        String  @db.Uuid
+  selected_answer_id String? @db.Uuid
+  is_correct         Boolean @default(false)
+
+  exam     Exam     @relation(fields: [exam_id], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [question_id], references: [id], onDelete: Cascade)
+  answer   Answer?  @relation(fields: [selected_answer_id], references: [id], onDelete: SetNull)
+
+  @@map("exam_answers")
+}
