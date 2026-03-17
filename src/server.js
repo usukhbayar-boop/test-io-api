@@ -14,6 +14,11 @@ const app = express();
 // Security
 app.use(helmet());
 app.use(cors());
+
+// Static files (uploads) - before rate limiter
+app.use('/uploads', express.static(path.join(process.cwd(), config.upload.dir)));
+
+// Rate limiter - only applies to API routes
 app.use(rateLimit({
   windowMs: config.rateLimit.windowMs,
   max: config.rateLimit.max,
@@ -28,9 +33,6 @@ app.use(morgan(config.nodeEnv === 'production' ? 'combined' : 'dev'));
 // Body parsing
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Static files (uploads)
-app.use('/uploads', express.static(path.join(process.cwd(), config.upload.dir)));
 
 // Routes
 app.use('/api', routes);
