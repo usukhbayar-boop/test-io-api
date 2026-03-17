@@ -16,7 +16,10 @@ app.use(helmet());
 app.use(cors());
 
 // Static files (uploads) - before rate limiter, no CORS restrictions
-app.use('/uploads', cors(), express.static(path.join(process.cwd(), config.upload.dir)));
+app.use('/uploads', cors(), (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+}, express.static(path.join(process.cwd(), config.upload.dir)));
 
 // Rate limiter - only applies to API routes
 app.use(rateLimit({
