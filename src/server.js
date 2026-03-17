@@ -13,7 +13,7 @@ const app = express();
 
 // Security
 app.use(helmet());
-app.use(cors({ origin: config.cors.origin }));
+app.use(cors());
 app.use(rateLimit({
   windowMs: config.rateLimit.windowMs,
   max: config.rateLimit.max,
